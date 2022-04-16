@@ -1,19 +1,24 @@
 import logging
 
 import aioredis
-import yaml
 from aiohttp import web
 
-from app.handlers import Handler
-from app.middlewares import error_middleware
-from app.routes import setup_routes
+from handlers import Handler
+from middlewares import error_middleware
+from routes import setup_routes
+from settings import config
 
 logging.basicConfig(level="INFO")
 
 
-def setup_redis(app: web.Application, conf):
-    host = conf["redis"]["host"]
-    port = conf["redis"]["port"]
+def setup_config(app: web.Application):
+    app["config"] = config
+
+
+def setup_redis(app: web.Application):
+    redis_config = config["redis"]
+    host = redis_config["host"]
+    port = redis_config["port"]
     redis = aioredis.from_url(f"redis://{host}:{port}")
 
     async def close_redis():
@@ -25,19 +30,13 @@ def setup_redis(app: web.Application, conf):
 
 
 def setup_app(app: web.Application):
-    conf = load_config('config/config.yaml')
-    redis = setup_redis(app, conf)
+    setup_config(app)
+    redis = setup_redis(app)
     handler = Handler(redis)
     setup_routes(app, handler)
-
-
-def load_config(fname):
-    with open(fname, 'rt') as f:
-        data = yaml.safe_load(f)
-    return data
 
 
 if __name__ == "__main__":
     app = web.Application(middlewares=[error_middleware])
     setup_app(app)
-    web.run_app(app)
+    web.run_app(app, port=app["config"]["common"]["port"])

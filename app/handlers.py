@@ -5,22 +5,9 @@ from aiohttp import web
 from aioredis import Redis
 from pydantic import ValidationError
 
-from app.schemas import ConvertRequest, UpdateExchangeRateRequest
+from schemas import ConvertRequest, UpdateExchangeRateRequest
 
 _logger = logging.getLogger(__name__)
-
-
-def return_error(e: Exception) -> web.Response:
-    if e is KeyError:
-        response_obj = f'Field {e} is required'
-    elif e is ValueError:
-        if "json" in dir(e):
-            response_obj = e.json()
-        else:
-            response_obj = e
-    else:
-        response_obj = e
-    return web.Response(text=response_obj, status=422)
 
 
 class Handler:

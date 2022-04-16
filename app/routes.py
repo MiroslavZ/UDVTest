@@ -1,6 +1,6 @@
 from aiohttp import web
 
-from app.handlers import Handler
+from handlers import Handler
 
 
 def setup_routes(app: web.Application, handler: Handler):
